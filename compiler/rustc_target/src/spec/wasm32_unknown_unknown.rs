@@ -51,6 +51,8 @@ pub fn target() -> Target {
     lld_args.push("--no-entry".into());
     lld_args.push("--export-dynamic".into());
 
+    options.features = "+atomics,+bulk-memory".into();
+
     Target {
         llvm_target: "wasm32-unknown-unknown".into(),
         pointer_width: 32,
