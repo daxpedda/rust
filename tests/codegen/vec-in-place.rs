@@ -1,5 +1,6 @@
 //@ ignore-debug: FIXME: checks for call detect scoped noalias metadata
 //@ compile-flags: -O -Z merge-functions=disabled
+//@ ignore-llvm-version: 19-99
 #![crate_type = "lib"]
 
 // Ensure that trivial casts of vec elements are O(1)
