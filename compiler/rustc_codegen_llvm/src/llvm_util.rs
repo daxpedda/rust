@@ -1,7 +1,8 @@
 use crate::back::write::create_informational_target_machine;
 use crate::errors::{
     FixedX18InvalidArch, InvalidTargetFeaturePrefix, PossibleFeature, TargetFeatureDisableOrEnable,
-    UnknownCTargetFeature, UnknownCTargetFeaturePrefix, UnstableCTargetFeature,
+    TargetFeatureEnableRequirement, UnknownCTargetFeature, UnknownCTargetFeaturePrefix,
+    UnstableCTargetFeature,
 };
 use crate::llvm;
 use libc::c_int;
@@ -284,7 +285,7 @@ pub fn to_llvm_features<'a>(sess: &Session, s: &'a str) -> LLVMFeature<'a> {
 }
 
 /// Given a map from target_features to whether they are enabled or disabled,
-/// ensure only valid combinations are allowed.
+/// ensure tied features to all be enabled or disabled together.
 pub fn check_tied_features(
     sess: &Session,
     features: &FxHashMap<&str, bool>,
@@ -296,6 +297,24 @@ pub fn check_tied_features(
             let enabled = features.get(tied_iter.next().unwrap());
             if tied_iter.any(|f| enabled != features.get(f)) {
                 return Some(tied);
+            }
+        }
+    }
+    return None;
+}
+
+/// Given a map from target_features to whether they are enabled or disabled,
+/// ensure features that are required by other enabled features to be enabled.
+pub fn check_dependant_features(
+    sess: &Session,
+    features: &FxHashMap<&str, bool>,
+) -> Option<(&'static str, &'static str)> {
+    if !features.is_empty() {
+        for (feature, requires) in sess.target.dependant_target_features() {
+            if features.get(feature).copied().unwrap_or(false)
+                && !features.get(requires).copied().unwrap_or(false)
+            {
+                return Some((*feature, *requires));
             }
         }
     }
@@ -634,6 +653,15 @@ pub(crate) fn global_llvm_features(sess: &Session, diagnostics: bool) -> Vec<Str
     if diagnostics && let Some(f) = check_tied_features(sess, &featsmap) {
         sess.dcx().emit_err(TargetFeatureDisableOrEnable {
             features: f,
+            span: None,
+            missing_features: None,
+        });
+    }
+
+    if diagnostics && let Some((feature, requires)) = check_dependant_features(sess, &featsmap) {
+        sess.dcx().emit_err(TargetFeatureEnableRequirement {
+            feature,
+            requires,
             span: None,
             missing_features: None,
         });

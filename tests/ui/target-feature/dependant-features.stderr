@@ -1,0 +1,18 @@
+error: the target feature relaxed-simd requires simd128 to be enabled
+  --> $DIR/tied-features.rs:6:5
+   |
+LL |     #[target_feature(enable = "relaxed-simd")]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add the missing features in a `target_feature` attribute
+
+error: the target feature relaxed-simd requires simd128 to be enabled
+  --> $DIR/tied-features.rs:18:1
+   |
+LL | #[target_feature(enable = "relaxed-simd")]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add the missing features in a `target_feature` attribute
+
+error: aborting due to 2 previous errors
+

@@ -11,7 +11,10 @@ use rustc_target::spec::{FramePointer, SanitizerSet, StackProbeType, StackProtec
 use smallvec::SmallVec;
 
 use crate::attributes;
-use crate::errors::{MissingFeatures, SanitizerMemtagRequiresMte, TargetFeatureDisableOrEnable};
+use crate::errors::{
+    MissingFeatures, SanitizerMemtagRequiresMte, TargetFeatureDisableOrEnable,
+    TargetFeatureEnableRequirement,
+};
 use crate::llvm::AttributePlace::Function;
 use crate::llvm::{self, AllocKindFlags, Attribute, AttributeKind, AttributePlace, MemoryEffects};
 use crate::llvm_util;
@@ -462,10 +465,9 @@ pub fn from_fn_attrs<'ll, 'tcx>(
     let function_features =
         codegen_fn_attrs.target_features.iter().map(|f| f.as_str()).collect::<Vec<&str>>();
 
-    if let Some(f) = llvm_util::check_tied_features(
-        cx.tcx.sess,
-        &function_features.iter().map(|f| (*f, true)).collect(),
-    ) {
+    let function_features_map = function_features.iter().map(|f| (*f, true)).collect();
+
+    if let Some(f) = llvm_util::check_tied_features(cx.tcx.sess, &function_features_map) {
         let span = cx
             .tcx
             .get_attrs(instance.def_id(), sym::target_feature)
@@ -475,6 +477,26 @@ pub fn from_fn_attrs<'ll, 'tcx>(
             .dcx()
             .create_err(TargetFeatureDisableOrEnable {
                 features: f,
+                span: Some(span),
+                missing_features: Some(MissingFeatures),
+            })
+            .emit();
+        return;
+    }
+
+    if let Some((feature, requires)) =
+        llvm_util::check_dependant_features(cx.tcx.sess, &function_features_map)
+    {
+        let span = cx
+            .tcx
+            .get_attrs(instance.def_id(), sym::target_feature)
+            .next()
+            .map_or_else(|| cx.tcx.def_span(instance.def_id()), |a| a.span);
+        cx.tcx
+            .dcx()
+            .create_err(TargetFeatureEnableRequirement {
+                feature,
+                requires,
                 span: Some(span),
                 missing_features: Some(MissingFeatures),
             })

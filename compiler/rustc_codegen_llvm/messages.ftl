@@ -79,6 +79,9 @@ codegen_llvm_symbol_already_defined =
 codegen_llvm_target_feature_disable_or_enable =
     the target features {$features} must all be either enabled or disabled together
 
+codegen_llvm_target_feature_enable_requirement =
+    the target feature {$feature} requires {$requires} to be enabled
+
 codegen_llvm_target_machine = could not create LLVM TargetMachine for triple: {$triple}
 codegen_llvm_target_machine_with_llvm_err = could not create LLVM TargetMachine for triple: {$triple}: {$llvm_err}
 

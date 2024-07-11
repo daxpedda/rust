@@ -1,0 +1,4 @@
+error: the target feature relaxed-simd requires simd128 to be enabled
+
+error: aborting due to 1 previous error
+
