@@ -124,6 +124,9 @@ pub fn options() -> TargetOptions {
         // representation, so this is disabled.
         generate_arange_section: false,
 
+        // LLVM has enabled target features by default that are not ready in Rust yet.
+        features: "-multivalue,-reference-types".into(),
+
         ..Default::default()
     }
 }

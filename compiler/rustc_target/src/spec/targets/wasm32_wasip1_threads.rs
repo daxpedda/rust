@@ -57,7 +57,7 @@ pub fn target() -> Target {
     options.entry_name = "__main_void".into();
 
     options.singlethread = false;
-    options.features = "+atomics,+bulk-memory,+mutable-globals".into();
+    options.features = "-multivalue,-reference-types,+atomics,+bulk-memory".into();
 
     Target {
         llvm_target: "wasm32-wasi".into(),

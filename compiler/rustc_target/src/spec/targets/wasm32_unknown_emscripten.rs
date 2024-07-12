@@ -20,6 +20,7 @@ pub fn target() -> Target {
         panic_strategy: PanicStrategy::Unwind,
         no_default_libraries: false,
         families: cvs!["unix", "wasm"],
+        features: "-multivalue,-reference-types".into(),
         ..base::wasm::options()
     };
     Target {
